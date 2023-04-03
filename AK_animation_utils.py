@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation
 
 from tqdm import tqdm_notebook as tqdm
-
+import cmasher
 
 def hex_to_rgb(value):
     '''
@@ -97,3 +97,16 @@ def animate_lines(lines, fig, ANIMATION_FRAMES=None):
     
     return matplotlib.animation.FuncAnimation(fig, anim_func,frames=tqdm(ANIMATION_FRAMES),interval=30)
     
+def get_gradient_curve(x,y,cmap=cmasher.guppy_r, color_by="x", linewidths=10, **kwargs):
+    '''
+        Creates an instance of LineCollection representing a curve (x,y) colored by x or y according to a cmap.
+    '''
+    lc = matplotlib.collections.LineCollection(make_segments(x, y),linewidths=linewidths, **kwargs)
+    if color_by=="x":   
+        lc.set_array(x/np.max(x))
+    if color_by=="y":
+        lc.set_array(y/np.max(y))
+        
+    lc.set_capstyle("round")
+    lc.set_cmap(cmap)
+    return lc
