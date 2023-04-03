@@ -110,3 +110,45 @@ def get_gradient_curve(x,y,cmap=cmasher.guppy_r, color_by="x", linewidths=10, **
     lc.set_capstyle("round")
     lc.set_cmap(cmap)
     return lc
+
+
+def animate_line_collections(line_collections, fig, ANIMATION_FRAMES=None):
+
+    x_datas = []
+    y_datas = []
+       
+    for lc in line_collections:
+        segments = lc.get_segments()
+        x_datas.append(np.array([seg[0,0] for seg in segments]))
+        y_datas.append(np.array([seg[0,1] for seg in segments]))
+        
+    if ANIMATION_FRAMES is None:
+        ANIMATION_FRAMES = x_datas[0]
+        
+    def anim_func(playhead_t):
+        for k,lc in enumerate(line_collections):
+            mask = x_datas[k]<playhead_t
+            lc.set_segments(make_segments(x_datas[k][mask], y_datas[k][mask]))
+            
+        return line_collections,
+
+    return matplotlib.animation.FuncAnimation(fig, anim_func,frames=tqdm(ANIMATION_FRAMES),interval=30)
+
+
+def get_animated_fill(x,y, fig,  ax, ANIMATION_FRAMES=None,color="white",**kwargs):
+    
+    fill =ax.fill_between(x,0,y,color=color,**kwargs)
+    
+    if ANIMATION_FRAMES is None:
+        ANIMATION_FRAMES = x
+        
+    def anim_func(playhead_x):
+        mask = x>playhead_x
+        ax.collections.clear()
+        x_masked=np.ma.masked_where(mask,x)
+        y_masked=np.ma.masked_where(mask,y)
+        fill = ax.fill_between(x_masked,0,y_masked,color=color, **kwargs)
+        return fill,
+
+    return (fill, matplotlib.animation.FuncAnimation(fig, anim_func,frames=tqdm(ANIMATION_FRAMES),interval=30))
+    
